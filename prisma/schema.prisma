@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Owner {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+  username String // Asegúrate de que 'username' esté aquí
+
+  // Relación con Pet
+  pets     Pet[]  // Relación inversa con Pet (agregado)
+}
+
+model Veterinarian {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  password    String
+  consultations Consultation[] // Relación con Consultation
+}
+
+model Pet {
+  id          Int             @id @default(autoincrement())
+  name        String
+  breed       String
+  stressLevel Int
+  ownerId     Int
+  owner       Owner           @relation(fields: [ownerId], references: [id])
+  consultations Consultation[] // Relación con Consultation
+}
+
+model Consultation {
+  id             Int            @id @default(autoincrement())
+  description    String
+  date           DateTime       @default(now())
+  petId          Int
+  veterinarianId Int
+  pet            Pet            @relation(fields: [petId], references: [id])
+  veterinarian   Veterinarian   @relation(fields: [veterinarianId], references: [id])
+}
