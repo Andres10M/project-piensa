@@ -7,11 +7,23 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: { email: string; password: string }) {
-    const users = []; 
-    const user = await this.authService.validateUser(body.email, body.password, users);
+    const user = await this.authService.validateUser(body.email, body.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
     return this.authService.login(user);
+  }
+
+  @Post('register')
+  async register(
+    @Body()
+    body: {
+      name: string;
+      email: string;
+      password: string;
+      username: string;
+    },
+  ) {
+    return this.authService.createUser(body);
   }
 }

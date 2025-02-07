@@ -13,11 +13,12 @@ export class UsersService {
     // Usamos los datos proporcionados correctamente
     return this.prisma.owner.create({
       data: {
-        username: data.name,  // Usamos 'data.name' para el campo 'username'
-        password: hashedPassword,  // Usamos la contraseña hasheada
-        email: data.email,  // Usamos 'data.email' como el email
-        name: data.name,  // Aseguramos que 'name' se pase correctamente desde los datos
+        username: data.name, // Usamos 'data.name' para el campo 'username'
+        password: hashedPassword, // Usamos la contraseña hasheada
+        email: data.email, // Usamos 'data.email' como el email
+        name: data.name, // Aseguramos que 'name' se pase correctamente desde los datos
       },
     });
   }
+  
 }
