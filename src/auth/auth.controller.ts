@@ -21,8 +21,7 @@ export class AuthController {
       name: string;
       email: string;
       password: string;
-      username: string;
-    },
+    }
   ) {
     return this.authService.createUser(body);
   }

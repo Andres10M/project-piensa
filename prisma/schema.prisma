@@ -1,3 +1,9 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,42 +12,38 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-model Owner {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
-  password String
-  username String // Asegúrate de que 'username' esté aquí
-
-  // Relación con Pet
-  pets     Pet[]  // Relación inversa con Pet (agregado)
-}
-
-model Veterinarian {
-  id          Int      @id @default(autoincrement())
+model User {
+  id          String  @id @default(uuid())
   name        String
-  email       String   @unique
+  email       String  @unique
   password    String
-  consultations Consultation[] // Relación con Consultation
+  pets        Pet[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Pet {
-  id          Int             @id @default(autoincrement())
+  id          String   @id @default(uuid())
   name        String
-  breed       String
-  stressLevel Int
-  ownerId     Int
-  owner       Owner           @relation(fields: [ownerId], references: [id])
-  consultations Consultation[] // Relación con Consultation
+  breed       String?  // Raza de la mascota
+  age         Int?     // Edad en años
+  weight      Float?   // Peso en kg
+  gender      String?  // Género: Macho / Hembra
+  photo       String?  // URL de la imagen de la mascota
+  healthNotes String?  // Notas sobre la salud de la mascota
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
+  events      Event[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-model Consultation {
-  id             Int            @id @default(autoincrement())
-  description    String
-  date           DateTime       @default(now())
-  petId          Int
-  veterinarianId Int
-  pet            Pet            @relation(fields: [petId], references: [id])
-  veterinarian   Veterinarian   @relation(fields: [veterinarianId], references: [id])
+
+model Event {
+  id          String   @id @default(uuid())
+  petId       String
+  pet         Pet      @relation(fields: [petId], references: [id])
+  steps       Int      @default(0)
+  bpm         Int
+  timestamp   DateTime @default(now())
 }
