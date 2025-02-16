@@ -1,49 +1,35 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Put,
-  Delete,
-} from '@nestjs/common';
-import { PetService } from './pet.service'; // Importamos el servicio PetService
-import { Pet } from '@prisma/client'; // Importamos el tipo Pet de Prisma
+// pet.controller.ts
+import { Controller, Post, Body, Req, UseGuards, Get } from '@nestjs/common';
+import { Request } from 'express'; // Importa Request de Express
+import { PetService } from './pet.service';
+import { CreatePetDto } from './dto/pet.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('pets')
 export class PetController {
   constructor(private readonly petService: PetService) {}
 
-  // Crear una nueva mascota
   @Post()
-  async createPet(@Body() createPetDto: any): Promise<Pet> {
-    return this.petService.createPet(createPetDto);
-  }
+  @UseGuards(AuthGuard('jwt')) // Protegemos la ruta con JWT
+  async create(@Body() createPetDto: CreatePetDto, @Req() req: Request) {
+    const ownerId = (req.user as any)?.id; // Ahora `id` en lugar de `sub`
 
-  // Obtener todas las mascotas
+    console.log('🔹 Owner ID desde el token:', ownerId); // Verificar el `ownerId` que se obtiene del token
+
+    return this.petService.createPet({ ...createPetDto, ownerId });
+  }
   @Get()
-  async getAllPets(): Promise<Pet[]> {
-    return this.petService.getAllPets();
-  }
+  @UseGuards(AuthGuard('jwt')) // Protege esta ruta también con el guard
+  async getPets(@Req() req: Request) {
+    const ownerId = (req.user as any)?.id;
 
-  // Obtener una mascota por su ID
-  @Get(':id')
-  async getPetById(@Param('id') id: string): Promise<Pet | null> {
-    return this.petService.getPetById(id);
-  }
+    console.log('🔹 Headers recibidos:', req.headers); // Verifica si el token llega en los headers
+    console.log('🔹 ID del propietario desde el token:', (req.user as any)?.id);
 
-  // Actualizar los datos de una mascota
-  @Put(':id')
-  async updatePet(
-    @Param('id') id: string,
-    @Body() updatePetDto: any,
-  ): Promise<Pet> {
-    return this.petService.updatePet(id, updatePetDto);
-  }
+    if (!ownerId) {
+      throw new Error('No se encontró un propietario en el token');
+    }
 
-  // Eliminar una mascota
-  @Delete(':id')
-  async deletePet(@Param('id') id: string): Promise<Pet> {
-    return this.petService.deletePet(id);
+    return this.petService.getPetsByOwnerId(ownerId);
   }
 }

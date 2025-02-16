@@ -8,7 +8,6 @@ import { PrismaModule } from 'src/prisma/prisma.module'; // 👈 Importa PrismaM
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
   imports: [
     PassportModule,
     PrismaModule, // 👈 Agrega PrismaModule aquí para que PrismaService esté disponible
@@ -17,6 +16,7 @@ import { PrismaModule } from 'src/prisma/prisma.module'; // 👈 Importa PrismaM
       signOptions: { expiresIn: '1h' },
     }),
   ],
+  providers: [AuthService, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

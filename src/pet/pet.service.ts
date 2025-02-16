@@ -1,51 +1,42 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service'; // Servicio de Prisma para interactuar con la base de datos
-import { Pet } from '@prisma/client'; // Importamos el tipo Pet de Prisma
+import { PrismaService } from 'src/prisma/prisma.service';
+import { CreatePetDto } from './dto/pet.dto';
 
 @Injectable()
 export class PetService {
   constructor(private prisma: PrismaService) {}
 
-  // Crear una nueva mascota
-  async createPet(data: {
-    name: string;
-    breed?: string;
-    age?: number;
-    weight?: number;
-    gender?: string;
-    photo?: string;
-    healthNotes?: string;
-    ownerId: string;
-  }): Promise<Pet> {
+  async getPetsByOwnerId(ownerId: string) {
+    console.log('🔹 Buscando mascotas para ownerId:', ownerId); // Asegúrate de que 'ownerId' está correctamente recibido
+    return this.prisma.pet.findMany({
+      where: { ownerId: ownerId }, // Filtra las mascotas por ownerId
+    });
+  }
+  async createPet(createPetDto: CreatePetDto) {
+    const { ownerId, ...petData } = createPetDto;
+
+    // Asegurarse de que ownerId sea un string (UUID) antes de hacer la consulta
+    const ownerIdString = String(ownerId); // Convertimos ownerId a string si no lo es
+    console.log('Owner ID being searched:', ownerIdString); // Verifica el valor de ownerId antes de la consulta
+
+    // Verificar que el usuario (dueño de la mascota) existe
+    const ownerExists = await this.prisma.user.findUnique({
+      where: { id: ownerIdString }, // Aseguramos que estamos usando el ownerId correctamente
+    });
+
+    if (!ownerExists) {
+      throw new Error('El propietario no existe');
+    }
+    if (!ownerIdString || ownerIdString === 'undefined') {
+      throw new Error('El ownerId es inválido o no se proporcionó');
+    }
+
+    // Crear la mascota y asociarla con el ownerId
     return this.prisma.pet.create({
-      data,
-    });
-  }
-
-  // Obtener todas las mascotas
-  async getAllPets(): Promise<Pet[]> {
-    return this.prisma.pet.findMany();
-  }
-
-  // Obtener una mascota por su ID
-  async getPetById(id: string): Promise<Pet | null> {
-    return this.prisma.pet.findUnique({
-      where: { id },
-    });
-  }
-
-  // Actualizar los datos de una mascota
-  async updatePet(id: string, data: Partial<Pet>): Promise<Pet> {
-    return this.prisma.pet.update({
-      where: { id },
-      data,
-    });
-  }
-
-  // Eliminar una mascota
-  async deletePet(id: string): Promise<Pet> {
-    return this.prisma.pet.delete({
-      where: { id },
+      data: {
+        ...petData,
+        ownerId: ownerIdString, // Asociamos la mascota con el dueño
+      },
     });
   }
 }

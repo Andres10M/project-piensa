@@ -29,15 +29,15 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, sub: user.id }; // Asegurar que `sub` es el ID
     const token = this.jwtService.sign(payload);
 
     return {
       message: 'Login successful',
       access_token: token,
+      userId: user.id, // Devolvemos el ID del usuario para depuración
     };
   }
-
   async createUser(data: { name: string; email: string; password: string }) {
     // Hashear la contraseña antes de almacenarla
     const hashedPassword = await bcrypt.hash(data.password, 10);
